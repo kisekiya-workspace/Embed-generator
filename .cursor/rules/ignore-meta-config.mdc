@@ -1,0 +1,28 @@
+﻿---
+description: Read AGENTS.md first; never read secrets or Cursor internals
+alwaysApply: true
+---
+
+# Agent context policy
+
+## Read first (low token cost)
+
+1. **AGENTS.md** at project root — architecture, structure, conventions, limits
+2. Only then open specific source files listed in AGENTS.md for the task
+
+Do not broad-search or read the whole repo when AGENTS.md answers the question.
+
+## Never read
+
+- `.env`, `.env.*`, or any file with secrets
+- `.cursor/**`, `**/*.mdc`, `**/SKILL.md` unless the user explicitly asks
+
+## Skip unless asked
+
+- `RULE.md`, `RULES.md` — legacy; AGENTS.md is canonical
+- `node_modules/`, `.next/`
+
+## Editing docs
+
+- Keep **AGENTS.md** concise and current when architecture changes
+- Do not create extra markdown files unless the user requests them

@@ -1,0 +1,12 @@
+﻿# Secrets — never index or expose in AI context
+.env
+
+**/.env
+
+
+# Cursor tooling internals — not app source
+.cursor/
+**/SKILL.md
+**/*.mdc
+RULE.md
+RULES.md
