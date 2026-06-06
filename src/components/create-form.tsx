@@ -235,18 +235,14 @@ export function CreateForm() {
             Use <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">POST /api/keyboard</code> in your keyboard flow. Returns the shareable link.
           </p>
           <pre className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-xs leading-6 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-            {`# JSON response (default)
-POST /api/keyboard
-Content-Type: application/json
-
-{ "content": "your markdown", "title": "optional" }
-→ { "url": "https://yoursite.com/e/...", "id": "...", "preview": "..." }
-
-# Plain text — best for keyboard paste (body = link only)
-POST /api/keyboard?format=text
+            {`# BEST for WhatsApp — send as image (full-width in chat)
+POST /api/keyboard?format=image
 Content-Type: text/plain
-
 <markdown body>
+→ image/png (paste as photo, not a link)
+
+# Link preview (smaller thumbnail in some apps)
+POST /api/keyboard?format=text
 → https://yoursite.com/e/...`}
           </pre>
         </div>

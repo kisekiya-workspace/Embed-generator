@@ -27,3 +27,16 @@ export function textWithCors(body: string, init?: ResponseInit): Response {
     headers,
   });
 }
+
+export function binaryWithCors(
+  body: ArrayBuffer,
+  contentType: string,
+  init?: ResponseInit,
+): Response {
+  const headers = withCorsHeaders(init);
+  headers.set("Content-Type", contentType);
+  return new Response(body, {
+    ...init,
+    headers,
+  });
+}
