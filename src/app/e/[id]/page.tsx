@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { MarkdownContent } from "@/components/markdown-content";
 import { getBaseUrl } from "@/lib/base-url";
 import { parseMarkdown } from "@/lib/markdown";
-import { formatChatDescription } from "@/lib/og-description";
+import { getOgDescription } from "@/lib/og-description";
 import { getEmbed } from "@/lib/store";
 
 type PageProps = {
@@ -26,46 +26,47 @@ export async function generateMetadata({
   const baseUrl = getBaseUrl();
   const blocks = parseMarkdown(embed.content);
   const title = embed.title || "Shared content";
-  const description = formatChatDescription(blocks, {
-    title,
-    maxLength: 160,
-  });
+  const description = getOgDescription(blocks, { title });
   const imageUrl = `${baseUrl}/api/og/${id}`;
   const pageUrl = `${baseUrl}/e/${id}`;
 
-  return {
+  const openGraph = {
     title,
-    description,
-    metadataBase: new URL(baseUrl),
-    openGraph: {
-      title,
-      description,
-      type: "website",
-      url: pageUrl,
-      siteName: "Embed Generator",
-      locale: "en_US",
-      images: [
-        {
-          url: imageUrl,
-          secureUrl: imageUrl,
-          width: 1200,
-          height: 630,
-          type: "image/png",
-          alt: title,
-        },
-      ],
-    },
-    twitter: {
-      card: "summary_large_image",
-      title,
-      description,
-      images: {
+    type: "website" as const,
+    url: pageUrl,
+    siteName: "Embed Generator",
+    locale: "en_US",
+    images: [
+      {
         url: imageUrl,
+        secureUrl: imageUrl,
         width: 1200,
         height: 630,
+        type: "image/png",
         alt: title,
       },
+    ],
+    ...(description ? { description } : {}),
+  };
+
+  const twitter = {
+    card: "summary_large_image" as const,
+    title,
+    images: {
+      url: imageUrl,
+      width: 1200,
+      height: 630,
+      alt: title,
     },
+    ...(description ? { description } : {}),
+  };
+
+  return {
+    title,
+    ...(description ? { description } : {}),
+    metadataBase: new URL(baseUrl),
+    openGraph,
+    twitter,
     other: {
       "og:image:width": "1200",
       "og:image:height": "630",

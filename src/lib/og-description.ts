@@ -113,3 +113,22 @@ export function formatChatDescription(
 export function hasPrimaryTable(blocks: MarkdownBlock[]): boolean {
   return blocks.some((block) => block.type === "table");
 }
+
+/** Tables belong in the OG image — skip og:description so chat apps don't show a text wall. */
+export function shouldOmitDescription(blocks: MarkdownBlock[]): boolean {
+  return hasPrimaryTable(blocks);
+}
+
+export function getOgDescription(
+  blocks: MarkdownBlock[],
+  options?: { title?: string },
+): string | undefined {
+  if (shouldOmitDescription(blocks)) {
+    return undefined;
+  }
+
+  return formatChatDescription(blocks, {
+    title: options?.title,
+    maxLength: 160,
+  });
+}

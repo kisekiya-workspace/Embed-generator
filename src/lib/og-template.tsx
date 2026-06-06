@@ -5,22 +5,26 @@ import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "./constants";
 
 const themes = {
   light: {
-    background: "#f4f4f5",
+    background: "#ffffff",
     card: "#ffffff",
     text: "#18181b",
     muted: "#71717a",
     accent: "#2563eb",
     border: "#e4e4e7",
     codeBg: "#f4f4f5",
+    headerBg: "#2563eb",
+    headerText: "#ffffff",
   },
   dark: {
-    background: "#09090b",
+    background: "#18181b",
     card: "#18181b",
     text: "#fafafa",
     muted: "#a1a1aa",
     accent: "#60a5fa",
     border: "#3f3f46",
     codeBg: "#27272a",
+    headerBg: "#2563eb",
+    headerText: "#ffffff",
   },
 } as const;
 
@@ -30,11 +34,11 @@ function text(value: string | undefined | null): string {
   return typeof value === "string" ? value : "";
 }
 
-function tableFontSize(columnCount: number, compact = false): number {
-  if (compact) {
-    if (columnCount >= 5) return 17;
-    if (columnCount >= 4) return 19;
-    return 21;
+function tableFontSize(columnCount: number, fullBleed = false): number {
+  if (fullBleed) {
+    if (columnCount >= 5) return 20;
+    if (columnCount >= 4) return 22;
+    return 24;
   }
 
   if (columnCount >= 5) return 15;
@@ -46,18 +50,19 @@ function renderTable(
   block: Extract<MarkdownBlock, { type: "table" }>,
   palette: Palette,
   index: number,
-  compact = false,
+  fullBleed = false,
 ) {
   const columnCount = Math.max(block.headers.length, 1);
-  const fontSize = tableFontSize(columnCount, compact);
-  const visibleRows = block.rows.slice(0, 8);
+  const fontSize = tableFontSize(columnCount, fullBleed);
+  const maxRows = fullBleed ? 7 : 8;
+  const visibleRows = block.rows.slice(0, maxRows);
 
   const cellStyle = {
     display: "flex",
     flex: 1,
-    padding: "10px 12px",
+    padding: fullBleed ? "14px 16px" : "10px 12px",
     fontSize,
-    lineHeight: 1.3,
+    lineHeight: 1.25,
     color: palette.text,
     alignItems: "center",
   } as const;
@@ -68,16 +73,16 @@ function renderTable(
       style={{
         display: "flex",
         flexDirection: "column",
-        border: `1px solid ${palette.border}`,
-        borderRadius: 12,
-        overflow: "hidden",
-        marginBottom: 12,
+        flex: fullBleed ? 1 : undefined,
+        border: fullBleed ? undefined : `1px solid ${palette.border}`,
+        borderRadius: fullBleed ? 0 : 12,
+        marginBottom: fullBleed ? 0 : 12,
       }}
     >
       <div
         style={{
           display: "flex",
-          background: palette.codeBg,
+          background: fullBleed ? palette.headerBg : palette.codeBg,
           borderBottom: `1px solid ${palette.border}`,
         }}
       >
@@ -87,7 +92,7 @@ function renderTable(
             style={{
               ...cellStyle,
               fontWeight: 700,
-              color: palette.text,
+              color: fullBleed ? palette.headerText : palette.text,
             }}
           >
             {text(header)}
@@ -99,6 +104,8 @@ function renderTable(
           key={`tr-${index}-${rowIndex}`}
           style={{
             display: "flex",
+            flex: fullBleed ? 1 : undefined,
+            background: rowIndex % 2 === 1 ? palette.codeBg : palette.card,
             ...(rowIndex < visibleRows.length - 1
               ? { borderBottom: `1px solid ${palette.border}` }
               : {}),
@@ -128,14 +135,14 @@ function headingSize(level: number): number {
 function renderBlocks(
   blocks: MarkdownBlock[],
   palette: Palette,
-  compact = false,
+  fullBleed = false,
 ) {
   const visibleBlocks = blocks.slice(0, 14);
 
   return visibleBlocks.map((block, index) => {
     switch (block.type) {
       case "heading":
-        if (compact) {
+        if (fullBleed) {
           return null;
         }
 
@@ -208,7 +215,7 @@ function renderBlocks(
           </div>
         );
       case "table":
-        return renderTable(block, palette, index, compact);
+        return renderTable(block, palette, index, fullBleed);
       case "code":
         return (
           <div
@@ -265,18 +272,64 @@ function renderBlocks(
   });
 }
 
-export function OgCard({
+function TablePoster({
   title,
   blocks,
-  theme,
+  palette,
 }: {
   title: string;
   blocks: MarkdownBlock[];
-  theme: EmbedTheme;
+  palette: Palette;
 }) {
-  const palette = themes[theme] ?? themes.dark;
-  const compact = hasPrimaryTable(blocks);
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        width: OG_IMAGE_WIDTH,
+        height: OG_IMAGE_HEIGHT,
+        background: palette.background,
+        fontFamily: "Inter",
+      }}
+    >
+      {title ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            padding: "20px 28px",
+            background: palette.headerBg,
+            color: palette.headerText,
+            fontSize: 32,
+            fontWeight: 700,
+            lineHeight: 1.2,
+          }}
+        >
+          {text(title)}
+        </div>
+      ) : null}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+        }}
+      >
+        {renderBlocks(blocks, palette, true)}
+      </div>
+    </div>
+  );
+}
 
+function StandardCard({
+  title,
+  blocks,
+  palette,
+}: {
+  title: string;
+  blocks: MarkdownBlock[];
+  palette: Palette;
+}) {
   return (
     <div
       style={{
@@ -284,7 +337,7 @@ export function OgCard({
         width: OG_IMAGE_WIDTH,
         height: OG_IMAGE_HEIGHT,
         background: palette.background,
-        padding: compact ? 28 : 48,
+        padding: 48,
         fontFamily: "Inter",
       }}
     >
@@ -296,51 +349,49 @@ export function OgCard({
           background: palette.card,
           border: `1px solid ${palette.border}`,
           borderRadius: 24,
-          padding: compact ? "28px 32px" : "40px 44px",
+          padding: "40px 44px",
           boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
         }}
       >
-        {!compact ? (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 28,
+          }}
+        >
           <div
             style={{
               display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 28,
+              fontSize: 18,
+              fontWeight: 600,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: palette.accent,
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                fontSize: 18,
-                fontWeight: 600,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                color: palette.accent,
-              }}
-            >
-              Embed Card
-            </div>
-            <div
-              style={{
-                display: "flex",
-                width: 12,
-                height: 12,
-                borderRadius: 999,
-                background: palette.accent,
-              }}
-            />
+            Embed Card
           </div>
-        ) : null}
+          <div
+            style={{
+              display: "flex",
+              width: 12,
+              height: 12,
+              borderRadius: 999,
+              background: palette.accent,
+            }}
+          />
+        </div>
 
         {title ? (
           <div
             style={{
               display: "flex",
-              fontSize: compact ? 30 : 34,
+              fontSize: 34,
               fontWeight: 700,
               color: palette.text,
-              marginBottom: compact ? 18 : 24,
+              marginBottom: 24,
               lineHeight: 1.2,
             }}
           >
@@ -355,9 +406,28 @@ export function OgCard({
             flex: 1,
           }}
         >
-          {renderBlocks(blocks, palette, compact)}
+          {renderBlocks(blocks, palette, false)}
         </div>
       </div>
     </div>
   );
+}
+
+export function OgCard({
+  title,
+  blocks,
+  theme,
+}: {
+  title: string;
+  blocks: MarkdownBlock[];
+  theme: EmbedTheme;
+}) {
+  const palette = themes[theme] ?? themes.dark;
+  const fullBleed = hasPrimaryTable(blocks);
+
+  if (fullBleed) {
+    return <TablePoster title={title} blocks={blocks} palette={palette} />;
+  }
+
+  return <StandardCard title={title} blocks={blocks} palette={palette} />;
 }
