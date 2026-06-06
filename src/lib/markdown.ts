@@ -21,7 +21,7 @@ function inlineText(token: Tokens.Generic): string {
   return token.tokens
     .map((child) => {
       if (child.type === "text") {
-        return child.text;
+        return safeText(child.text);
       }
 
       if (child.type === "strong" || child.type === "em") {
@@ -29,11 +29,11 @@ function inlineText(token: Tokens.Generic): string {
       }
 
       if (child.type === "codespan") {
-        return child.text;
+        return safeText(child.text);
       }
 
       if (child.type === "link") {
-        return child.text;
+        return safeText(child.text);
       }
 
       return "";
@@ -50,7 +50,7 @@ function tableCellText(cell: Tokens.TableCell): string {
     return cell.tokens
       .map((child) => {
         if (child.type === "text") {
-          return child.text;
+          return safeText(child.text);
         }
 
         return inlineText(child as Tokens.Generic);
@@ -67,7 +67,7 @@ function listItems(token: Tokens.List): string[] {
       return item.tokens
         .map((child) => {
           if (child.type === "text") {
-            return child.text;
+            return safeText(child.text);
           }
 
           if (child.type === "paragraph") {
@@ -136,7 +136,7 @@ export function parseMarkdown(content: string): MarkdownBlock[] {
                   return inlineText(child as Tokens.Generic);
                 })
                 .join(" ")
-            : blockquote.text,
+            : safeText(blockquote.text),
         });
         break;
       }

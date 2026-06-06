@@ -67,18 +67,22 @@ function renderTable(
     alignItems: "center",
   } as const;
 
+  const wrapperStyle = fullBleed
+    ? {
+        display: "flex" as const,
+        flexDirection: "column" as const,
+        flex: 1,
+      }
+    : {
+        display: "flex" as const,
+        flexDirection: "column" as const,
+        border: `1px solid ${palette.border}`,
+        borderRadius: 12,
+        marginBottom: 12,
+      };
+
   return (
-    <div
-      key={`table-${index}`}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        flex: fullBleed ? 1 : undefined,
-        border: fullBleed ? undefined : `1px solid ${palette.border}`,
-        borderRadius: fullBleed ? 0 : 12,
-        marginBottom: fullBleed ? 0 : 12,
-      }}
-    >
+    <div key={`table-${index}`} style={wrapperStyle}>
       <div
         style={{
           display: "flex",
@@ -104,8 +108,8 @@ function renderTable(
           key={`tr-${index}-${rowIndex}`}
           style={{
             display: "flex",
-            flex: fullBleed ? 1 : undefined,
             background: rowIndex % 2 === 1 ? palette.codeBg : palette.card,
+            ...(fullBleed ? { flex: 1 } : {}),
             ...(rowIndex < visibleRows.length - 1
               ? { borderBottom: `1px solid ${palette.border}` }
               : {}),
@@ -137,15 +141,13 @@ function renderBlocks(
   palette: Palette,
   fullBleed = false,
 ) {
-  const visibleBlocks = blocks.slice(0, 14);
+  const visibleBlocks = blocks
+    .filter((block) => !(fullBleed && block.type === "heading"))
+    .slice(0, 14);
 
   return visibleBlocks.map((block, index) => {
     switch (block.type) {
       case "heading":
-        if (fullBleed) {
-          return null;
-        }
-
         return (
           <div
             key={`heading-${index}`}
@@ -267,7 +269,9 @@ function renderBlocks(
           />
         );
       default:
-        return null;
+        return (
+          <div key={`empty-${index}`} style={{ display: "flex", height: 0 }} />
+        );
     }
   });
 }
