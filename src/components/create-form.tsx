@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ShareImagePanel } from "@/components/share-image-panel";
 import type { CreateEmbedResponse, EmbedTheme } from "@/lib/types";
 
 const EXAMPLE_MARKDOWN = `## Team Scores
@@ -20,14 +21,12 @@ export function CreateForm() {
   const [result, setResult] = useState<CreateEmbedResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [previewKey, setPreviewKey] = useState(0);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsLoading(true);
     setError(null);
-    setCopied(false);
 
     try {
       const response = await fetch("/api/create", {
@@ -60,16 +59,6 @@ export function CreateForm() {
     } finally {
       setIsLoading(false);
     }
-  }
-
-  async function handleCopy() {
-    if (!result?.url) {
-      return;
-    }
-
-    await navigator.clipboard.writeText(result.url);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 2000);
   }
 
   function loadExample() {
@@ -161,89 +150,43 @@ export function CreateForm() {
           disabled={isLoading || !content.trim()}
           className="inline-flex h-12 items-center justify-center rounded-xl bg-blue-600 px-6 text-sm font-semibold text-white transition hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isLoading ? "Generating..." : "Generate link"}
+          {isLoading ? "Generating..." : "Generate image"}
         </button>
       </form>
 
       <div className="space-y-5">
-        <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-            Shareable link
-          </h2>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Paste this link in WhatsApp, iMessage, Telegram, Discord, or
-            anywhere that supports link previews.
-          </p>
-
-          {result ? (
-            <div className="mt-4 space-y-3">
-              <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm break-all text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-                {result.url}
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <button
-                  type="button"
-                  onClick={handleCopy}
-                  className="rounded-xl border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
-                >
-                  {copied ? "Copied" : "Copy link"}
-                </button>
-                <a
-                  href={result.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="rounded-xl border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-800 transition hover:bg-zinc-100 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
-                >
-                  Open page
-                </a>
-              </div>
-            </div>
-          ) : (
-            <p className="mt-4 text-sm text-zinc-500">
-              Your short link will appear here after you generate it.
+        {result ? (
+          <ShareImagePanel
+            id={result.id}
+            title={title}
+            url={result.url}
+            previewKey={previewKey}
+          />
+        ) : (
+          <div className="rounded-2xl border border-dashed border-zinc-300 bg-white p-8 text-center dark:border-zinc-700 dark:bg-zinc-900">
+            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+              Your formatted image will appear here
             </p>
-          )}
-        </div>
+            <p className="mt-2 text-sm text-zinc-500">
+              Share it as a photo in WhatsApp for full-width display — not as a
+              link.
+            </p>
+          </div>
+        )}
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-            Chat preview
+            Keyboard app
           </h2>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            This is the image chat apps will show in the embed card.
-          </p>
-
-          {result ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={`/api/og/${result.id}?v=${previewKey}`}
-              alt="Generated embed preview"
-              className="mt-4 w-full rounded-xl border border-zinc-200 dark:border-zinc-800"
-            />
-          ) : (
-            <div className="mt-4 flex h-48 items-center justify-center rounded-xl border border-dashed border-zinc-300 text-sm text-zinc-500 dark:border-zinc-700">
-              Preview appears after link generation
-            </div>
-          )}
-        </div>
-
-        <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
-          <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-            Keyboard app API
-          </h2>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Use <code className="rounded bg-zinc-100 px-1 dark:bg-zinc-800">POST /api/keyboard</code> in your keyboard flow. Returns the shareable link.
+            Return a PNG directly — insert as image in chat, not URL text.
           </p>
           <pre className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-xs leading-6 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-            {`# BEST for WhatsApp — send as image (full-width in chat)
-POST /api/keyboard?format=image
+            {`POST /api/keyboard?format=image
 Content-Type: text/plain
-<markdown body>
-→ image/png (paste as photo, not a link)
 
-# Link preview (smaller thumbnail in some apps)
-POST /api/keyboard?format=text
-→ https://yoursite.com/e/...`}
+<markdown>
+→ image/png (attach in WhatsApp)`}
           </pre>
         </div>
       </div>

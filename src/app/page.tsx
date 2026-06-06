@@ -9,12 +9,12 @@ export default function Home() {
             Embed Generator
           </p>
           <h1 className="max-w-3xl text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            Turn messy chat text into a clean shareable preview
+            Turn markdown into a shareable image for chat
           </h1>
           <p className="max-w-2xl text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Paste markdown from your keyboard app, generate a short link, and
-            share it in WhatsApp, iMessage, Telegram, or Discord. Chat apps show
-            a formatted preview image instead of broken tables and symbols.
+            WhatsApp cannot render markdown. Links only show a tiny thumbnail.
+            Generate a formatted PNG and share it as a photo — full width, like a
+            ChatGPT screenshot.
           </p>
         </section>
 

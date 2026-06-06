@@ -16,4 +16,6 @@ export interface CreateEmbedRequest {
 export interface CreateEmbedResponse {
   id: string;
   url: string;
+  preview?: string;
+  imageUrl?: string;
 }

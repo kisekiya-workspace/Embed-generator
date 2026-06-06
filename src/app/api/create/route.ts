@@ -27,7 +27,13 @@ export async function POST(request: Request) {
   }
 
   return jsonWithCors(
-    { id: result.id, url: result.url },
+    {
+      id: result.id,
+      url: result.url,
+      preview: result.preview,
+      imageUrl: result.preview,
+      shareAsImage: true,
+    },
     {
       headers: {
         "X-RateLimit-Remaining": result.remaining.toString(),
