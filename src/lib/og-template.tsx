@@ -1,4 +1,5 @@
 import type { MarkdownBlock } from "./markdown";
+import { hasPrimaryTable } from "./og-description";
 import type { EmbedTheme } from "./types";
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "./constants";
 
@@ -29,19 +30,26 @@ function text(value: string | undefined | null): string {
   return typeof value === "string" ? value : "";
 }
 
-function tableFontSize(columnCount: number): number {
-  if (columnCount >= 5) return 14;
-  if (columnCount >= 4) return 16;
-  return 18;
+function tableFontSize(columnCount: number, compact = false): number {
+  if (compact) {
+    if (columnCount >= 5) return 17;
+    if (columnCount >= 4) return 19;
+    return 21;
+  }
+
+  if (columnCount >= 5) return 15;
+  if (columnCount >= 4) return 17;
+  return 19;
 }
 
 function renderTable(
   block: Extract<MarkdownBlock, { type: "table" }>,
   palette: Palette,
   index: number,
+  compact = false,
 ) {
   const columnCount = Math.max(block.headers.length, 1);
-  const fontSize = tableFontSize(columnCount);
+  const fontSize = tableFontSize(columnCount, compact);
   const visibleRows = block.rows.slice(0, 8);
 
   const cellStyle = {
@@ -117,12 +125,20 @@ function headingSize(level: number): number {
   return 26;
 }
 
-function renderBlocks(blocks: MarkdownBlock[], palette: Palette) {
+function renderBlocks(
+  blocks: MarkdownBlock[],
+  palette: Palette,
+  compact = false,
+) {
   const visibleBlocks = blocks.slice(0, 14);
 
   return visibleBlocks.map((block, index) => {
     switch (block.type) {
       case "heading":
+        if (compact) {
+          return null;
+        }
+
         return (
           <div
             key={`heading-${index}`}
@@ -192,7 +208,7 @@ function renderBlocks(blocks: MarkdownBlock[], palette: Palette) {
           </div>
         );
       case "table":
-        return renderTable(block, palette, index);
+        return renderTable(block, palette, index, compact);
       case "code":
         return (
           <div
@@ -259,6 +275,7 @@ export function OgCard({
   theme: EmbedTheme;
 }) {
   const palette = themes[theme] ?? themes.dark;
+  const compact = hasPrimaryTable(blocks);
 
   return (
     <div
@@ -267,7 +284,7 @@ export function OgCard({
         width: OG_IMAGE_WIDTH,
         height: OG_IMAGE_HEIGHT,
         background: palette.background,
-        padding: 48,
+        padding: compact ? 28 : 48,
         fontFamily: "Inter",
       }}
     >
@@ -279,49 +296,51 @@ export function OgCard({
           background: palette.card,
           border: `1px solid ${palette.border}`,
           borderRadius: 24,
-          padding: "40px 44px",
+          padding: compact ? "28px 32px" : "40px 44px",
           boxShadow: "0 20px 60px rgba(0,0,0,0.12)",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 28,
-          }}
-        >
+        {!compact ? (
           <div
             style={{
               display: "flex",
-              fontSize: 18,
-              fontWeight: 600,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              color: palette.accent,
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 28,
             }}
           >
-            Embed Card
+            <div
+              style={{
+                display: "flex",
+                fontSize: 18,
+                fontWeight: 600,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: palette.accent,
+              }}
+            >
+              Embed Card
+            </div>
+            <div
+              style={{
+                display: "flex",
+                width: 12,
+                height: 12,
+                borderRadius: 999,
+                background: palette.accent,
+              }}
+            />
           </div>
-          <div
-            style={{
-              display: "flex",
-              width: 12,
-              height: 12,
-              borderRadius: 999,
-              background: palette.accent,
-            }}
-          />
-        </div>
+        ) : null}
 
         {title ? (
           <div
             style={{
               display: "flex",
-              fontSize: 34,
+              fontSize: compact ? 30 : 34,
               fontWeight: 700,
               color: palette.text,
-              marginBottom: 24,
+              marginBottom: compact ? 18 : 24,
               lineHeight: 1.2,
             }}
           >
@@ -336,7 +355,7 @@ export function OgCard({
             flex: 1,
           }}
         >
-          {renderBlocks(blocks, palette)}
+          {renderBlocks(blocks, palette, compact)}
         </div>
       </div>
     </div>

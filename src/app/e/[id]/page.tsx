@@ -3,11 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MarkdownContent } from "@/components/markdown-content";
 import { getBaseUrl } from "@/lib/base-url";
-import {
-  blocksToPlainText,
-  parseMarkdown,
-  truncateText,
-} from "@/lib/markdown";
+import { parseMarkdown } from "@/lib/markdown";
+import { formatChatDescription } from "@/lib/og-description";
 import { getEmbed } from "@/lib/store";
 
 type PageProps = {
@@ -28,26 +25,32 @@ export async function generateMetadata({
 
   const baseUrl = getBaseUrl();
   const blocks = parseMarkdown(embed.content);
-  const description = truncateText(
-    blocksToPlainText(blocks) || embed.content,
-    160,
-  );
   const title = embed.title || "Shared content";
+  const description = formatChatDescription(blocks, {
+    title,
+    maxLength: 160,
+  });
   const imageUrl = `${baseUrl}/api/og/${id}`;
+  const pageUrl = `${baseUrl}/e/${id}`;
 
   return {
     title,
     description,
+    metadataBase: new URL(baseUrl),
     openGraph: {
       title,
       description,
       type: "website",
-      url: `${baseUrl}/e/${id}`,
+      url: pageUrl,
+      siteName: "Embed Generator",
+      locale: "en_US",
       images: [
         {
           url: imageUrl,
+          secureUrl: imageUrl,
           width: 1200,
           height: 630,
+          type: "image/png",
           alt: title,
         },
       ],
@@ -56,7 +59,16 @@ export async function generateMetadata({
       card: "summary_large_image",
       title,
       description,
-      images: [imageUrl],
+      images: {
+        url: imageUrl,
+        width: 1200,
+        height: 630,
+        alt: title,
+      },
+    },
+    other: {
+      "og:image:width": "1200",
+      "og:image:height": "630",
     },
   };
 }
