@@ -2,6 +2,7 @@ import { ImageResponse } from "next/og";
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "@/lib/constants";
 import { parseMarkdown } from "@/lib/markdown";
 import { OgCard } from "@/lib/og-template";
+import { parseThemeId } from "@/lib/og-themes";
 import type { EmbedTheme } from "@/lib/types";
 
 async function loadInterFont(weight: 400 | 700): Promise<ArrayBuffer> {
@@ -31,7 +32,7 @@ export async function renderOgImage(input: {
     loadInterFont(700),
   ]);
   const blocks = parseMarkdown(input.content);
-  const theme = input.theme === "light" ? "light" : "dark";
+  const theme = parseThemeId(input.theme);
 
   return new ImageResponse(
     (

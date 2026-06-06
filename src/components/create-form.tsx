@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ShareImagePanel } from "@/components/share-image-panel";
+import { themeCatalog } from "@/lib/og-themes";
 import type { CreateEmbedResponse, EmbedTheme } from "@/lib/types";
 
 const EXAMPLE_MARKDOWN = `## Team Scores
@@ -121,19 +122,23 @@ export function CreateForm() {
           <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
             Preview theme
           </span>
-          <div className="flex gap-3">
-            {(["dark", "light"] as const).map((option) => (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {themeCatalog.map((option) => (
               <button
-                key={option}
+                key={option.id}
                 type="button"
-                onClick={() => setTheme(option)}
-                className={`rounded-full px-4 py-2 text-sm font-medium capitalize transition ${
-                  theme === option
-                    ? "bg-blue-600 text-white"
-                    : "border border-zinc-300 text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+                onClick={() => setTheme(option.id)}
+                title={option.description}
+                className={`rounded-xl border px-3 py-2 text-left text-sm transition ${
+                  theme === option.id
+                    ? "border-blue-600 bg-blue-50 text-blue-900 dark:border-blue-500 dark:bg-blue-950 dark:text-blue-100"
+                    : "border-zinc-300 text-zinc-700 hover:border-zinc-400 dark:border-zinc-700 dark:text-zinc-300"
                 }`}
               >
-                {option}
+                <span className="font-medium">{option.name}</span>
+                <span className="mt-0.5 block text-xs opacity-70">
+                  {option.description}
+                </span>
               </button>
             ))}
           </div>
@@ -176,17 +181,24 @@ export function CreateForm() {
 
         <div className="rounded-2xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
           <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-50">
-            Keyboard app
+            API quick reference
           </h2>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Return a PNG directly — insert as image in chat, not URL text.
+            Agents, scripts, keyboards — see{" "}
+            <a href="/docs" className="text-blue-600 dark:text-blue-400">
+              full docs
+            </a>
+            .
           </p>
           <pre className="mt-4 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 p-4 text-xs leading-6 text-zinc-800 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100">
-            {`POST /api/keyboard?format=image
-Content-Type: text/plain
+            {`# Image (no storage) — agents, one-off
+POST /api/render?format=image
 
-<markdown>
-→ image/png (attach in WhatsApp)`}
+# Image + stored link — keyboards
+POST /api/keyboard?format=image
+
+# Link embed — Discord, Slack
+POST /api/create`}
           </pre>
         </div>
       </div>

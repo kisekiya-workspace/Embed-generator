@@ -1,6 +1,8 @@
 import { binaryWithCors, corsHeaders, jsonWithCors, textWithCors } from "@/lib/cors";
 import { createEmbed, parseCreateInput } from "@/lib/create-embed";
+import { parseThemeId, themeCatalog } from "@/lib/og-themes";
 import { renderOgImage } from "@/lib/render-og-image";
+import type { EmbedTheme } from "@/lib/types";
 
 type CreateSuccess = Extract<Awaited<ReturnType<typeof createEmbed>>, { ok: true }>;
 
@@ -32,7 +34,11 @@ export async function GET() {
     request: {
       json: {
         contentType: "application/json",
-        body: { content: "required", title: "optional", theme: "optional" },
+        body: {
+          content: "required",
+          title: "optional",
+          theme: `optional — one of: ${themeCatalog.map((t) => t.id).join(", ")}`,
+        },
       },
       plain: {
         contentType: "text/plain",
@@ -55,7 +61,7 @@ function getResponseFormat(request: Request): string {
 async function imageResponse(
   request: Request,
   result: CreateSuccess,
-  input: { title: string; content: string; theme: "light" | "dark" },
+  input: { title: string; content: string; theme: EmbedTheme },
 ) {
   const pngResponse = await renderOgImage({
     title: input.title,
@@ -77,7 +83,7 @@ async function imageResponse(
 function successResponse(
   request: Request,
   result: CreateSuccess,
-  input: { title: string; content: string; theme: "light" | "dark" },
+  input: { title: string; content: string; theme: EmbedTheme },
 ) {
   const format = getResponseFormat(request);
 
@@ -123,7 +129,7 @@ export async function POST(request: Request) {
     return jsonWithCors({ error: parsed.error }, { status: 400 });
   }
 
-  const theme = parsed.theme === "light" ? "light" : "dark";
+  const theme = parseThemeId(parsed.theme);
   const title = (parsed.title ?? "").trim();
   const result = await createEmbed(request, {
     content: parsed.content,

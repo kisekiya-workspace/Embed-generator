@@ -7,6 +7,7 @@ import {
 } from "@/lib/constants";
 import { checkCreateRateLimit, getClientIp } from "@/lib/rate-limit";
 import { isStorageConfigured, saveEmbed } from "@/lib/store";
+import { parseThemeId } from "@/lib/og-themes";
 import type { EmbedTheme } from "@/lib/types";
 
 export type CreateEmbedInput = {
@@ -33,7 +34,7 @@ export type CreateEmbedFailure = {
 export type CreateEmbedOutcome = CreateEmbedSuccess | CreateEmbedFailure;
 
 function parseTheme(value: string | null | undefined): EmbedTheme {
-  return value === "light" ? "light" : "dark";
+  return parseThemeId(value ?? undefined);
 }
 
 export async function parseCreateInput(
@@ -132,7 +133,7 @@ export async function createEmbed(
     };
   }
 
-  const theme = input.theme === "light" ? "light" : "dark";
+  const theme = parseThemeId(input.theme);
   const id = nanoid(EMBED_ID_LENGTH);
   const baseUrl = getBaseUrl();
 

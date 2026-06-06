@@ -1,4 +1,6 @@
-export type EmbedTheme = "light" | "dark";
+import type { OgThemeId } from "./og-themes";
+
+export type EmbedTheme = OgThemeId;
 
 export interface EmbedRecord {
   title: string;

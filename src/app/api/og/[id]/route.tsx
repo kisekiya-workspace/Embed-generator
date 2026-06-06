@@ -17,7 +17,7 @@ export async function GET(
     return renderOgImage({
       title: embed.title ?? "",
       content: embed.content,
-      theme: embed.theme === "light" ? "light" : "dark",
+      theme: embed.theme,
       cacheControl: "public, immutable, no-transform, max-age=31536000",
     });
   } catch (error) {

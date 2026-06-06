@@ -1,36 +1,119 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Embed & Image Generator
 
-## Getting Started
+Open-source tool and API that turns **markdown into chat-ready PNG images** and **shareable embed links**.
 
-First, run the development server:
+Chat apps (WhatsApp, iMessage) cannot render markdown. This project fixes that by generating formatted images you send as photos, plus optional short links with Open Graph previews for Discord, Slack, and the web.
+
+## Features
+
+- **Image mode** — PNG with tables, lists, headings (full-width in chat)
+- **Embed mode** — short links with OG preview cards (`/e/{id}`)
+- **Stateless API** — `/api/render` for agents (no database)
+- **Stored API** — `/api/create`, `/api/keyboard` with 90-day TTL
+- **Community themes** — light, dark, chatgpt, ocean, sunset
+- **MCP server** — Cursor / Claude agents can render images via `mcp-server/`
+- **Self-hostable** — Vercel + Upstash Redis, or local dev without Redis
+
+## Use cases
+
+| Use case | Endpoint | Output |
+|---|---|---|
+| WhatsApp / iMessage photo | `POST /api/render?format=image` | PNG bytes |
+| AI agents & tools | `POST /api/render?format=base64` | JSON + base64 PNG |
+| Discord / Slack link preview | `POST /api/create` | `{ url }` |
+| Keyboard / automation skills | `POST /api/keyboard?format=image` | PNG or URL |
+| Web UI | `/` | Generate, share, download |
+
+## Quick start
 
 ```bash
+git clone <your-repo-url>
+cd embed-generator
+cp .env.example .env.local
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Environment variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Required | Description |
+|---|---|---|
+| `NEXT_PUBLIC_BASE_URL` | Production | Public URL for links and OG tags |
+| `NEXT_PUBLIC_GITHUB_URL` | Optional | Footer GitHub link (omit placeholder until published) |
+| `UPSTASH_REDIS_REST_URL` | Production | Short-link storage |
+| `UPSTASH_REDIS_REST_TOKEN` | Production | Short-link storage |
 
-## Learn More
+Dev works without Redis (in-memory, non-persistent).
 
-To learn more about Next.js, take a look at the following resources:
+## API
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Discovery: `GET /api` — machine-readable docs JSON.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Human docs: [/docs](https://your-domain.com/docs) when deployed.
 
-## Deploy on Vercel
+### Render image (no storage)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+curl -X POST "http://localhost:3000/api/render?format=image" \
+  -H "Content-Type: text/plain" \
+  --data-binary "| Name | Score |
+| ---- | ----- |
+| Aria | 87 |" \
+  -o scores.png
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Base64 for agents
+
+```bash
+curl -X POST "http://localhost:3000/api/render?format=base64" \
+  -H "Content-Type: application/json" \
+  -d '{"content":"| A | B |\n| - | - |\n| 1 | 2 |","title":"Result"}'
+```
+
+### Create embed link
+
+```bash
+curl -X POST "http://localhost:3000/api/create" \
+  -H "Content-Type: application/json" \
+  -d '{"content":"## Hello\n\n**World**","title":"Greeting"}'
+```
+
+## MCP server (agents)
+
+```bash
+cd mcp-server && npm install && npm run build
+```
+
+Configure in Cursor with `EMBED_GENERATOR_URL` pointing at your deployment. Tools:
+
+- `render_markdown_to_image` — stateless PNG (WhatsApp photo)
+- `create_embed_link` — stored URL with OG preview
+- `list_themes` — available themes
+
+See [mcp-server/README.md](./mcp-server/README.md).
+
+## Deploy
+
+1. Push to GitHub
+2. Import to [Vercel](https://vercel.com)
+3. Add Upstash Redis integration
+4. Set `NEXT_PUBLIC_BASE_URL` to your domain
+
+## Project structure
+
+```
+src/app/          Routes (UI, API, embed pages)
+src/components/   React UI
+src/lib/          Core logic (markdown, OG render, storage)
+AGENTS.md         Guide for AI coding agents
+```
+
+## Contributing
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md). Themes, MCP tools, keyboard examples, and docs are great first PRs.
+
+## License
+
+MIT — see [LICENSE](./LICENSE).

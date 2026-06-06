@@ -1,34 +1,11 @@
 import type { MarkdownBlock } from "./markdown";
 import { hasPrimaryTable } from "./og-description";
+import type { OgPalette } from "./og-themes";
+import { ogThemes, parseThemeId } from "./og-themes";
 import type { EmbedTheme } from "./types";
 import { OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH } from "./constants";
 
-const themes = {
-  light: {
-    background: "#ffffff",
-    card: "#ffffff",
-    text: "#18181b",
-    muted: "#71717a",
-    accent: "#2563eb",
-    border: "#e4e4e7",
-    codeBg: "#f4f4f5",
-    headerBg: "#2563eb",
-    headerText: "#ffffff",
-  },
-  dark: {
-    background: "#18181b",
-    card: "#18181b",
-    text: "#fafafa",
-    muted: "#a1a1aa",
-    accent: "#60a5fa",
-    border: "#3f3f46",
-    codeBg: "#27272a",
-    headerBg: "#2563eb",
-    headerText: "#ffffff",
-  },
-} as const;
-
-type Palette = (typeof themes)[keyof typeof themes];
+type Palette = OgPalette;
 
 function text(value: string | undefined | null): string {
   return typeof value === "string" ? value : "";
@@ -426,7 +403,7 @@ export function OgCard({
   blocks: MarkdownBlock[];
   theme: EmbedTheme;
 }) {
-  const palette = themes[theme] ?? themes.dark;
+  const palette = ogThemes[parseThemeId(theme)];
   const fullBleed = hasPrimaryTable(blocks);
 
   if (fullBleed) {

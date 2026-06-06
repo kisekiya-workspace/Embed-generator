@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Embed Generator",
+  title: "Embed & Image Generator — Open Source",
   description:
-    "Generate short links with rich chat previews for markdown content.",
+    "Open-source tool and API to turn markdown into chat-ready PNG images and shareable embed links for agents, WhatsApp, and keyboards.",
 };
 
 export default function RootLayout({
